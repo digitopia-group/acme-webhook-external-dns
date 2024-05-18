@@ -1,10 +1,8 @@
 package testing
 
 import (
-	"context"
 	"time"
 
-	"github.com/cert-manager/acme-webhook-external-dns/internal/scheme"
 	"github.com/cert-manager/cert-manager/pkg/acme/webhook"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -16,6 +14,9 @@ import (
 	"sigs.k8s.io/external-dns/plan"
 	"sigs.k8s.io/external-dns/source"
 	"sigs.k8s.io/yaml"
+
+	"github.com/thatsmrtlabot/acme-webhook-external-dns/internal/scheme"
+	contextutil "github.com/thatsmrtlabot/acme-webhook-external-dns/internal/util/context"
 
 	_ "embed"
 )
@@ -76,11 +77,7 @@ func (s *Solver) Initialize(config *rest.Config, stopCh <-chan struct{}) error {
 
 	// Run external-dns in the background, stopping via context cancellation
 	// when the webhook is stopped
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		<-stopCh
-		cancel()
-	}()
+	ctx := contextutil.StopChannelContext(stopCh)
 
 	// Start external-dns
 	go externalDNS.Run(ctx)

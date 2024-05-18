@@ -4,10 +4,11 @@ import (
 	"testing"
 	"time"
 
-	inttesting "github.com/cert-manager/acme-webhook-external-dns/internal/testing"
 	acmetest "github.com/cert-manager/cert-manager/test/acme"
 	"github.com/go-logr/logr/testr"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	inttesting "github.com/thatsmrtlabot/acme-webhook-external-dns/internal/testing"
 )
 
 func TestRunsSuite(t *testing.T) {

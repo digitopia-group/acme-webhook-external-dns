@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"hash/fnv"
 	"strings"
+	"time"
 
-	"github.com/cert-manager/acme-webhook-external-dns/internal/scheme"
 	"github.com/cert-manager/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
 	"github.com/cert-manager/cert-manager/pkg/acme/webhook/cmd"
 	logf "github.com/cert-manager/cert-manager/pkg/logs"
@@ -18,6 +18,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/external-dns/endpoint"
+
+	"github.com/thatsmrtlabot/acme-webhook-external-dns/internal/scheme"
+	contextutil "github.com/thatsmrtlabot/acme-webhook-external-dns/internal/util/context"
 )
 
 var (
@@ -27,6 +30,9 @@ var (
 	// GroupName is the Kubernetes group name that will be forwarded to this
 	// extension-apiserver.
 	GroupName = "external-dns.acme.cert-manager.io"
+
+	// Timeout for each request
+	RequestTimeout = time.Second
 )
 
 func main() {
@@ -41,6 +47,7 @@ func main() {
 // interface.
 type externalDNSProviderSolver struct {
 	client client.Client
+	ctx    context.Context
 }
 
 // Name is used as the name for this DNS solver when referencing it on the ACME
@@ -59,6 +66,10 @@ func (c *externalDNSProviderSolver) Name() string {
 // cert-manager itself will later perform a self check to ensure that the
 // solver has correctly configured the DNS provider.
 func (c *externalDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error {
+	// Create child context that times out
+	ctx, cancel := context.WithTimeout(c.ctx, RequestTimeout)
+	defer cancel()
+
 	// Fail early if the challenge provided contains bad config
 	providerSpecific, err := loadProviderSpecificConfig(ch.Config)
 	if err != nil {
@@ -74,7 +85,7 @@ func (c *externalDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error
 		},
 	}
 
-	result, err := controllerutil.CreateOrPatch(context.TODO(), c.client, &dnsEndpoint, func() error {
+	result, err := controllerutil.CreateOrPatch(ctx, c.client, &dnsEndpoint, func() error {
 		ep := endpoint.NewEndpoint(ch.ResolvedFQDN, endpoint.RecordTypeTXT, ch.Key).WithSetIdentifier(dnsEndpoint.Name)
 		ep.ProviderSpecific = providerSpecific
 		dnsEndpoint.Spec.Endpoints = []*endpoint.Endpoint{ep}
@@ -105,6 +116,10 @@ func (c *externalDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error
 // This is in order to facilitate multiple DNS validations for the same domain
 // concurrently.
 func (c *externalDNSProviderSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error {
+	// Create child context that times out
+	ctx, cancel := context.WithTimeout(c.ctx, RequestTimeout)
+	defer cancel()
+
 	// Create object with just the namespace and name for the Delete method
 	dnsEndpoint := endpoint.DNSEndpoint{
 		ObjectMeta: metav1.ObjectMeta{
@@ -114,7 +129,7 @@ func (c *externalDNSProviderSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error
 	}
 
 	// Delete the object, we do not care if the object does not exist
-	err := c.client.Delete(context.TODO(), &dnsEndpoint)
+	err := c.client.Delete(ctx, &dnsEndpoint)
 	if client.IgnoreNotFound(err) != nil {
 		return fmt.Errorf("could not delete DNSEndpoint object: %w", err)
 	}
@@ -139,6 +154,7 @@ func (c *externalDNSProviderSolver) Initialize(config *rest.Config, stopCh <-cha
 	}
 
 	c.client = cli
+	c.ctx = contextutil.StopChannelContext(stopCh)
 
 	return nil
 }

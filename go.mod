@@ -1,4 +1,4 @@
-module github.com/cert-manager/acme-webhook-external-dns
+module github.com/thatsmrtlabot/acme-webhook-external-dns
 
 go 1.22.2
 
