@@ -4,6 +4,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/external-dns/endpoint"
 )
@@ -19,7 +20,7 @@ var (
 
 func NewScheme() *runtime.Scheme {
 	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	// ExternalDNS does not have a method to just add to the scheme, so we add
 	// the types we care about.

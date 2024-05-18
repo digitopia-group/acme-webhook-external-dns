@@ -33,10 +33,12 @@ func NewTestRegistry(t *testing.T, addr string, domains ...string) *Registry {
 		Handler: dns.HandlerFunc(registry.handleDNSRequest),
 	}
 
-	go server.ListenAndServe()
+	go func() {
+		_ = server.ListenAndServe()
+	}()
 
 	t.Cleanup(func() {
-		server.Shutdown()
+		_ = server.Shutdown()
 	})
 
 	return registry
@@ -88,8 +90,7 @@ func (r *Registry) OwnerID() string {
 func (r *Registry) handleDNSRequest(w dns.ResponseWriter, req *dns.Msg) {
 	msg := new(dns.Msg)
 	msg.SetReply(req)
-	switch req.Opcode {
-	case dns.OpcodeQuery:
+	if req.Opcode == dns.OpcodeQuery {
 		for _, q := range msg.Question {
 			if err := r.addDNSAnswer(q, msg, req); err != nil {
 				msg.SetRcode(req, dns.RcodeServerFailure)
@@ -97,7 +98,7 @@ func (r *Registry) handleDNSRequest(w dns.ResponseWriter, req *dns.Msg) {
 			}
 		}
 	}
-	w.WriteMsg(msg)
+	_ = w.WriteMsg(msg)
 }
 
 func (r *Registry) addDNSAnswer(q dns.Question, msg *dns.Msg, req *dns.Msg) error {

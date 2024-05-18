@@ -2,7 +2,6 @@ package testing
 
 import (
 	"context"
-	_ "embed"
 	"time"
 
 	"github.com/cert-manager/acme-webhook-external-dns/internal/scheme"
@@ -17,6 +16,8 @@ import (
 	"sigs.k8s.io/external-dns/plan"
 	"sigs.k8s.io/external-dns/source"
 	"sigs.k8s.io/yaml"
+
+	_ "embed"
 )
 
 // Solver wraps a provided cert-manager webhook solver, adding an extra step to
@@ -73,7 +74,7 @@ func (s *Solver) Initialize(config *rest.Config, stopCh <-chan struct{}) error {
 		ManagedRecordTypes:   []string{endpoint.RecordTypeA, endpoint.RecordTypeAAAA, endpoint.RecordTypeCNAME, endpoint.RecordTypeTXT},
 	}
 
-	// Run external-dns in the background, stopping via context cancellation when
+	// Run external-dns in the background, stopping via context cancellation
 	// when the webhook is stopped
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {

@@ -7,6 +7,10 @@ import (
 	"hash/fnv"
 	"strings"
 
+	"github.com/cert-manager/acme-webhook-external-dns/internal/scheme"
+	"github.com/cert-manager/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
+	"github.com/cert-manager/cert-manager/pkg/acme/webhook/cmd"
+	logf "github.com/cert-manager/cert-manager/pkg/logs"
 	extapi "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -14,11 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/external-dns/endpoint"
-
-	"github.com/cert-manager/acme-webhook-external-dns/internal/scheme"
-	"github.com/cert-manager/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
-	"github.com/cert-manager/cert-manager/pkg/acme/webhook/cmd"
-	logf "github.com/cert-manager/cert-manager/pkg/logs"
 )
 
 var (
@@ -86,6 +85,7 @@ func (c *externalDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error
 		return fmt.Errorf("could not create/patch DNSEndpoint object: %w", err)
 	}
 
+	//exhaustive:ignore
 	switch result {
 	case controllerutil.OperationResultCreated:
 		logf.Log.Info("created DNSEndpoint object", "request", ch.UID, "namespace", dnsEndpoint.Namespace, "name", dnsEndpoint.Name)

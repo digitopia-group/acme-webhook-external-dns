@@ -28,7 +28,6 @@ func TestRunsSuite(t *testing.T) {
 		acmetest.SetDNSServer("127.0.0.1:59351"),
 		acmetest.SetUseAuthoritative(false),
 		acmetest.SetPropagationLimit(time.Second*30),
-		acmetest.SetStrict(true),
 	)
 
 	// TODO: Uncomment RunConformance and delete RunBasic and RunExtended once https://github.com/cert-manager/cert-manager/pull/4835 is merged
