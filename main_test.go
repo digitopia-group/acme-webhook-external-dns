@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net"
 	"testing"
 	"time"
 
@@ -11,22 +12,20 @@ import (
 	inttesting "github.com/thatsmrtlabot/acme-webhook-external-dns/internal/testing"
 )
 
+const DNSPort = "59351"
+
 func TestRunsSuite(t *testing.T) {
 	log.SetLogger(testr.New(t))
 
 	// Create solver and registry that runs a background external-dns
-	registry := inttesting.NewTestRegistry(t, ":59351", "example.com.")
-	solver := inttesting.Solver{
-		Solver:   &externalDNSProviderSolver{},
-		Registry: registry,
-	}
+	solver := inttesting.NewTestSolver(t, &externalDNSProviderSolver{}, net.JoinHostPort("", DNSPort), "example.com.")
 
 	// Uncomment the below fixture when implementing your custom DNS provider
-	fixture := acmetest.NewFixture(&solver,
+	fixture := acmetest.NewFixture(solver,
 		acmetest.SetResolvedZone("example.com."),
 		acmetest.SetAllowAmbientCredentials(false),
 		acmetest.SetConfig(map[string]any{}),
-		acmetest.SetDNSServer("127.0.0.1:59351"),
+		acmetest.SetDNSServer(net.JoinHostPort("127.0.0.1", DNSPort)),
 		acmetest.SetUseAuthoritative(false),
 		acmetest.SetPropagationLimit(time.Second*30),
 	)

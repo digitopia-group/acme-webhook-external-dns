@@ -1,12 +1,15 @@
 package testing
 
 import (
+	"context"
+	"testing"
 	"time"
 
 	"github.com/cert-manager/cert-manager/pkg/acme/webhook"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/external-dns/controller"
@@ -29,6 +32,13 @@ import (
 type Solver struct {
 	webhook.Solver
 	*Registry
+}
+
+func NewTestSolver(t *testing.T, solver webhook.Solver, dnsAddr string, domains ...string) *Solver {
+	return &Solver{
+		Solver:   solver,
+		Registry: NewTestRegistry(t, dnsAddr, domains...),
+	}
 }
 
 func (s *Solver) Initialize(config *rest.Config, stopCh <-chan struct{}) error {
@@ -59,28 +69,29 @@ func (s *Solver) Initialize(config *rest.Config, stopCh <-chan struct{}) error {
 	}
 
 	// Create source for new config
-	source, err := source.NewCRDSource(restClient, "", "DNSEndpoint", "", labels.Everything(), runtimeScheme, true)
+	source, err := source.NewCRDSource(restClient, "", "DNSEndpoint", "", labels.Everything(), runtimeScheme, false)
 	if err != nil {
 		return err
 	}
 
 	// Setup the external-dns controller
 	externalDNS := controller.Controller{
-		Source:               source,
-		Registry:             s.Registry,
-		Policy:               &plan.SyncPolicy{},
-		Interval:             5 * time.Second,
-		MinEventSyncInterval: 1 * time.Second,
-		DomainFilter:         s.Registry.domains,
-		ManagedRecordTypes:   []string{endpoint.RecordTypeA, endpoint.RecordTypeAAAA, endpoint.RecordTypeCNAME, endpoint.RecordTypeTXT},
+		Source:             source,
+		Registry:           s.Registry,
+		Policy:             &plan.SyncPolicy{},
+		DomainFilter:       s.Registry.domains,
+		ManagedRecordTypes: []string{endpoint.RecordTypeA, endpoint.RecordTypeAAAA, endpoint.RecordTypeCNAME, endpoint.RecordTypeTXT},
 	}
 
 	// Run external-dns in the background, stopping via context cancellation
 	// when the webhook is stopped
 	ctx := contextutil.StopChannelContext(stopCh)
 
-	// Start external-dns
-	go externalDNS.Run(ctx)
+	// Start external-dns, we cant use externalDNS.Run as this can perform a
+	// fatal log that ends the test when shutting down
+	go wait.UntilWithContext(ctx, func(ctx context.Context) {
+		_ = externalDNS.RunOnce(ctx)
+	}, time.Second)
 
 	// We cant capture externalDNS errors in a nice way, so we will just have
 	// to rely on failing tests to tell us something is wrong

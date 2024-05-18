@@ -32,7 +32,7 @@ var (
 	GroupName = "external-dns.acme.cert-manager.io"
 
 	// Timeout for each request
-	RequestTimeout = time.Second
+	RequestTimeout = time.Second * 5
 )
 
 func main() {
