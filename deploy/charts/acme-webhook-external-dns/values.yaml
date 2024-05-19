@@ -1,0 +1,216 @@
+# Number of replicas of approver-policy to run.
+#
+# For example:
+#  Use integer to set a fixed number of replicas
+#   replicaCount: 2
+#
+#  Use null, if you want to omit the replicas field and use the Kubernetes default value.
+#   replicaCount: null
+#
+#  Use a string if you want to insert a variable for post-processing of the rendered template.
+#   replicaCount: ${REPLICAS_OVERRIDE:=3}
+#
+# +docs:type=number,string,null
+replicaCount: 1
+
+image:
+  # Target image registry. This value is prepended to the target image repository, if set.
+  # For example:
+  #   registry: quay.io
+  #   repository: jetstack/cert-manager-approver-policy
+  # +docs:property
+  # registry: quay.io
+
+  # Target image repository.
+  repository: gchr.io/thatsmrtalbot/acme-webhook-external-dns
+
+  # Override the image tag to deploy by setting this variable.
+  # If no value is set, the chart's appVersion is used.
+  # +docs:property
+  # tag: vX.Y.Z
+
+  # Target image digest. Override any tag, if set.
+  # For example:
+  #   digest: sha256:0e072dddd1f7f8fc8909a2ca6f65e76c5f0d2fcfb8be47935ae3457e8bbceb20
+  # +docs:property
+  # digest: sha256:...
+
+  # Kubernetes imagePullPolicy on Deployment.
+  pullPolicy: IfNotPresent
+
+webhook:
+  # The port that the webhook listens on.
+  port: 10250
+
+service:
+  # Webhook service type, can be ClusterIP, NodePort or LoadBalancer.
+  type: ClusterIP
+
+  # Webhook service port.
+  port: 443
+
+certManager:
+  # cert-manager namespace, this is used to grant cert-manager 
+  # permission to call this webhook.
+  namespace: cert-manager
+  # cert-manager service account name, this is used to grant cert-manager 
+  # permission to call this webhook.
+  serviceAccountName: cert-manager
+
+# Optional secrets used for pulling the approver-policy container image.
+imagePullSecrets: []
+
+# Boolean value, expose pod on hostNetwork.
+# Required when running a custom CNI in managed providers such as AWS EKS.
+#
+# For more information, see [AWS EKS](https://cert-manager.io/docs/installation/compatibility/#aws-eks).
+hostNetwork: false
+
+# This value may need to be changed if `hostNetwork: true`
+dnsPolicy: ClusterFirst
+
+# Configure the priority class of the Pod.
+#
+# For more information, see:
+# * [Guaranteed Scheduling For Critical Add-On Pods](https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/)
+# * [Protect Your Mission-Critical Pods From Eviction With PriorityClass](https://kubernetes.io/blog/2023/01/12/protect-mission-critical-pods-priorityclass/)
+#
+# For example:
+#   priorityClassName: system-cluster-critical
+#
+priorityClassName: ""
+
+# A Kubernetes Affinity, if required. For more information, see [Affinity v1 core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core).
+#
+# For example:
+#   affinity:
+#     nodeAffinity:
+#      requiredDuringSchedulingIgnoredDuringExecution:
+#        nodeSelectorTerms:
+#        - matchExpressions:
+#          - key: foo.bar.com/role
+#            operator: In
+#            values:
+#            - master
+affinity: {}
+
+# The nodeSelector on Pods tells Kubernetes to schedule Pods on the nodes with
+# matching labels.
+# For more information, see [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/).
+# +docs:property=nodeSelector
+nodeSelector:
+  kubernetes.io/os: linux
+
+# A list of Kubernetes Tolerations, if required. For more information, see [Toleration v1 core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core).
+#
+# For example:
+#   tolerations:
+#   - key: foo.bar.com/role
+#     operator: Equal
+#     value: master
+#     effect: NoSchedule
+tolerations: []
+
+# List of Kubernetes TopologySpreadConstraints. For more information, see:
+# [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/).
+#
+# For example:
+#   topologySpreadConstraints:
+#   - maxSkew: 2
+#     topologyKey: topology.kubernetes.io/zone
+#     whenUnsatisfiable: ScheduleAnyway
+#     labelSelector:
+#       matchLabels:
+#         app.kubernetes.io/name: cert-manager-approver-policy
+#         app.kubernetes.io/instance: cert-manager-approver-policy
+topologySpreadConstraints: []
+
+podDisruptionBudget:
+  # Enable or disable the PodDisruptionBudget resource.
+  #
+  # This prevents downtime during voluntary disruptions such as during a Node upgrade.
+  # For example, the PodDisruptionBudget blocks `kubectl drain`
+  # if it is used on the Node where the only remaining approver-policy
+  # Pod is currently running.
+  enabled: false
+
+  # Configures the minimum available pods for disruptions.
+  # Cannot be used if `maxUnavailable` is set.
+  # +docs:property
+  # minAvailable: 1
+
+  # Configures the maximum unavailable pods for disruptions.
+  # Cannot be used if `minAvailable` is set.
+  # +docs:property
+  # maxUnavailable: 1
+
+# Optional extra volume mounts. Useful for mounting custom root CAs.
+#
+# For example:
+#  volumeMounts:
+#  - name: my-volume-mount
+#    mountPath: /etc/approver-policy/secrets
+volumeMounts: []
+
+# Optional extra volumes.
+#
+# For example:
+#  volumes:
+#  - name: my-volume
+#    secret:
+#      secretName: my-secret
+
+volumes: []
+# Kubernetes pod resources.
+# For more information, see [Resource Management for Pods and Containers](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/).
+#
+# For example:
+#  resources:
+#    limits:
+#      cpu: 100m
+#      memory: 128Mi
+#    requests:
+#      cpu: 100m
+#      memory: 128Mi
+resources: {}
+
+# Allow custom labels to be placed on resources - optional.
+commonLabels: {}
+
+# Allow custom annotations to be placed on cert-manager-approver pod - optional.
+podAnnotations: {}
+
+# Deployment update strategy for the approver-policy Deployment.
+#
+# This could be needed when deploying approver-policy on each control-plane node
+# and setting anti-affinities to forbid two pods on the same node. In this
+# situation, default values of maxSurge (25% round up to next integer = 1) and
+# maxUnavailable (25% round down to next integer = 0) block the rolling update
+# as the new surge pod can't be scheduled on a control-plane node due to
+# anti-affinities. Setting maxSurge to 0 and maxUnavailable to 1 would solve the
+# problem.
+#
+# For example:
+#  strategy:
+#    type: RollingUpdate
+#    rollingUpdate:
+#      maxSurge: 0
+#      maxUnavailable: 1
+#
+# For more information, see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy).
+strategy: {}
+
+# Use these variables to configure the HTTP_PROXY environment variables.
+
+# Configures the HTTP_PROXY environment variable where a HTTP proxy is required.
+# +docs:property
+# http_proxy: "http://proxy:8080"
+
+# Configures the HTTPS_PROXY environment variable where a HTTP proxy is required.
+# +docs:property
+# https_proxy: "https://proxy:8080"
+
+# Configures the NO_PROXY environment variable where a HTTP proxy is required,
+# but certain domains should be excluded.
+# +docs:property
+# no_proxy: "127.0.0.1,localhost"

@@ -22,6 +22,11 @@ targets:
       repo_ref: main
       repo_hash: d9d816ad61c9ca979f815cc993304f21aae5b394
       repo_path: modules/go
+    - folder_name: helm
+      repo_url: https://github.com/cert-manager/makefile-modules.git
+      repo_ref: main
+      repo_hash: d9d816ad61c9ca979f815cc993304f21aae5b394
+      repo_path: modules/helm
     - folder_name: help
       repo_url: https://github.com/cert-manager/makefile-modules.git
       repo_ref: main

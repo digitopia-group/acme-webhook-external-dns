@@ -1,0 +1,308 @@
+{
+  "$defs": {
+    "helm-values": {
+      "additionalProperties": false,
+      "properties": {
+        "affinity": {
+          "$ref": "#/$defs/helm-values.affinity"
+        },
+        "certManager": {
+          "$ref": "#/$defs/helm-values.certManager"
+        },
+        "commonLabels": {
+          "$ref": "#/$defs/helm-values.commonLabels"
+        },
+        "dnsPolicy": {
+          "$ref": "#/$defs/helm-values.dnsPolicy"
+        },
+        "global": {
+          "$ref": "#/$defs/helm-values.global"
+        },
+        "hostNetwork": {
+          "$ref": "#/$defs/helm-values.hostNetwork"
+        },
+        "http_proxy": {
+          "$ref": "#/$defs/helm-values.http_proxy"
+        },
+        "https_proxy": {
+          "$ref": "#/$defs/helm-values.https_proxy"
+        },
+        "image": {
+          "$ref": "#/$defs/helm-values.image"
+        },
+        "imagePullSecrets": {
+          "$ref": "#/$defs/helm-values.imagePullSecrets"
+        },
+        "no_proxy": {
+          "$ref": "#/$defs/helm-values.no_proxy"
+        },
+        "nodeSelector": {
+          "$ref": "#/$defs/helm-values.nodeSelector"
+        },
+        "podAnnotations": {
+          "$ref": "#/$defs/helm-values.podAnnotations"
+        },
+        "podDisruptionBudget": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget"
+        },
+        "priorityClassName": {
+          "$ref": "#/$defs/helm-values.priorityClassName"
+        },
+        "replicaCount": {
+          "$ref": "#/$defs/helm-values.replicaCount"
+        },
+        "resources": {
+          "$ref": "#/$defs/helm-values.resources"
+        },
+        "service": {
+          "$ref": "#/$defs/helm-values.service"
+        },
+        "strategy": {
+          "$ref": "#/$defs/helm-values.strategy"
+        },
+        "tolerations": {
+          "$ref": "#/$defs/helm-values.tolerations"
+        },
+        "topologySpreadConstraints": {
+          "$ref": "#/$defs/helm-values.topologySpreadConstraints"
+        },
+        "volumeMounts": {
+          "$ref": "#/$defs/helm-values.volumeMounts"
+        },
+        "volumes": {
+          "$ref": "#/$defs/helm-values.volumes"
+        },
+        "webhook": {
+          "$ref": "#/$defs/helm-values.webhook"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.affinity": {
+      "default": {},
+      "description": "A Kubernetes Affinity, if required. For more information, see [Affinity v1 core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core).\n\nFor example:\naffinity:\n  nodeAffinity:\n   requiredDuringSchedulingIgnoredDuringExecution:\n     nodeSelectorTerms:\n     - matchExpressions:\n       - key: foo.bar.com/role\n         operator: In\n         values:\n         - master",
+      "type": "object"
+    },
+    "helm-values.certManager": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "$ref": "#/$defs/helm-values.certManager.namespace"
+        },
+        "serviceAccountName": {
+          "$ref": "#/$defs/helm-values.certManager.serviceAccountName"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.certManager.namespace": {
+      "default": "cert-manager",
+      "description": "cert-manager namespace, this is used to grant cert-manager permission to call this webhook.",
+      "type": "string"
+    },
+    "helm-values.certManager.serviceAccountName": {
+      "default": "cert-manager",
+      "description": "cert-manager service account name, this is used to grant cert-manager permission to call this webhook.",
+      "type": "string"
+    },
+    "helm-values.commonLabels": {
+      "default": {},
+      "description": "Allow custom labels to be placed on resources - optional.",
+      "type": "object"
+    },
+    "helm-values.dnsPolicy": {
+      "default": "ClusterFirst",
+      "description": "This value may need to be changed if `hostNetwork: true`",
+      "type": "string"
+    },
+    "helm-values.global": {
+      "description": "Global values shared across all (sub)charts"
+    },
+    "helm-values.hostNetwork": {
+      "default": false,
+      "description": "Boolean value, expose pod on hostNetwork.\nRequired when running a custom CNI in managed providers such as AWS EKS.\n\nFor more information, see [AWS EKS](https://cert-manager.io/docs/installation/compatibility/#aws-eks).",
+      "type": "boolean"
+    },
+    "helm-values.http_proxy": {
+      "description": "Configures the HTTP_PROXY environment variable where a HTTP proxy is required.",
+      "type": "string"
+    },
+    "helm-values.https_proxy": {
+      "description": "Configures the HTTPS_PROXY environment variable where a HTTP proxy is required.",
+      "type": "string"
+    },
+    "helm-values.image": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/helm-values.image.digest"
+        },
+        "pullPolicy": {
+          "$ref": "#/$defs/helm-values.image.pullPolicy"
+        },
+        "registry": {
+          "$ref": "#/$defs/helm-values.image.registry"
+        },
+        "repository": {
+          "$ref": "#/$defs/helm-values.image.repository"
+        },
+        "tag": {
+          "$ref": "#/$defs/helm-values.image.tag"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.image.digest": {
+      "description": "Target image digest. Override any tag, if set.\nFor example:\ndigest: sha256:0e072dddd1f7f8fc8909a2ca6f65e76c5f0d2fcfb8be47935ae3457e8bbceb20",
+      "type": "string"
+    },
+    "helm-values.image.pullPolicy": {
+      "default": "IfNotPresent",
+      "description": "Kubernetes imagePullPolicy on Deployment.",
+      "type": "string"
+    },
+    "helm-values.image.registry": {
+      "description": "Target image registry. This value is prepended to the target image repository, if set.\nFor example:\nregistry: quay.io\nrepository: jetstack/cert-manager-approver-policy",
+      "type": "string"
+    },
+    "helm-values.image.repository": {
+      "default": "gchr.io/thatsmrtalbot/acme-webhook-external-dns",
+      "description": "Target image repository.",
+      "type": "string"
+    },
+    "helm-values.image.tag": {
+      "description": "Override the image tag to deploy by setting this variable. If no value is set, the chart's appVersion is used.",
+      "type": "string"
+    },
+    "helm-values.imagePullSecrets": {
+      "default": [],
+      "description": "Optional secrets used for pulling the approver-policy container image.",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.no_proxy": {
+      "description": "Configures the NO_PROXY environment variable where a HTTP proxy is required, but certain domains should be excluded.",
+      "type": "string"
+    },
+    "helm-values.nodeSelector": {
+      "default": {
+        "kubernetes.io/os": "linux"
+      },
+      "description": "The nodeSelector on Pods tells Kubernetes to schedule Pods on the nodes with matching labels. For more information, see [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/).",
+      "type": "object"
+    },
+    "helm-values.podAnnotations": {
+      "default": {},
+      "description": "Allow custom annotations to be placed on cert-manager-approver pod - optional.",
+      "type": "object"
+    },
+    "helm-values.podDisruptionBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget.enabled"
+        },
+        "maxUnavailable": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget.maxUnavailable"
+        },
+        "minAvailable": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget.minAvailable"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.podDisruptionBudget.enabled": {
+      "default": false,
+      "description": "Enable or disable the PodDisruptionBudget resource.\n\nThis prevents downtime during voluntary disruptions such as during a Node upgrade. For example, the PodDisruptionBudget blocks `kubectl drain` if it is used on the Node where the only remaining approver-policy\nPod is currently running.",
+      "type": "boolean"
+    },
+    "helm-values.podDisruptionBudget.maxUnavailable": {
+      "description": "Configures the maximum unavailable pods for disruptions.\nCannot be used if `minAvailable` is set.",
+      "type": "number"
+    },
+    "helm-values.podDisruptionBudget.minAvailable": {
+      "description": "Configures the minimum available pods for disruptions.\nCannot be used if `maxUnavailable` is set.",
+      "type": "number"
+    },
+    "helm-values.priorityClassName": {
+      "default": "",
+      "description": "Configure the priority class of the Pod.\n\nFor more information, see:\n* [Guaranteed Scheduling For Critical Add-On Pods](https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/)\n* [Protect Your Mission-Critical Pods From Eviction With PriorityClass](https://kubernetes.io/blog/2023/01/12/protect-mission-critical-pods-priorityclass/)\n\nFor example:\npriorityClassName: system-cluster-critical",
+      "type": "string"
+    },
+    "helm-values.replicaCount": {
+      "default": 1,
+      "description": "Number of replicas of approver-policy to run.\n\nFor example:\n Use integer to set a fixed number of replicas\nreplicaCount: 2\nUse null, if you want to omit the replicas field and use the Kubernetes default value.\nreplicaCount: null\nUse a string if you want to insert a variable for post-processing of the rendered template.\nreplicaCount: ${REPLICAS_OVERRIDE:=3}"
+    },
+    "helm-values.resources": {
+      "default": {},
+      "description": "Kubernetes pod resources.\nFor more information, see [Resource Management for Pods and Containers](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/).\n\nFor example:\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi",
+      "type": "object"
+    },
+    "helm-values.service": {
+      "additionalProperties": false,
+      "properties": {
+        "port": {
+          "$ref": "#/$defs/helm-values.service.port"
+        },
+        "type": {
+          "$ref": "#/$defs/helm-values.service.type"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.service.port": {
+      "default": 443,
+      "description": "Webhook service port.",
+      "type": "number"
+    },
+    "helm-values.service.type": {
+      "default": "ClusterIP",
+      "description": "Webhook service type, can be ClusterIP, NodePort or LoadBalancer.",
+      "type": "string"
+    },
+    "helm-values.strategy": {
+      "default": {},
+      "description": "Deployment update strategy for the approver-policy Deployment.\n\nThis could be needed when deploying approver-policy on each control-plane node and setting anti-affinities to forbid two pods on the same node. In this situation, default values of maxSurge (25% round up to next integer = 1) and maxUnavailable (25% round down to next integer = 0) block the rolling update as the new surge pod can't be scheduled on a control-plane node due to anti-affinities. Setting maxSurge to 0 and maxUnavailable to 1 would solve the problem.\n\nFor example:\nstrategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxSurge: 0\n    maxUnavailable: 1\nFor more information, see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy).",
+      "type": "object"
+    },
+    "helm-values.tolerations": {
+      "default": [],
+      "description": "A list of Kubernetes Tolerations, if required. For more information, see [Toleration v1 core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core).\n\nFor example:\ntolerations:\n- key: foo.bar.com/role\n  operator: Equal\n  value: master\n  effect: NoSchedule",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.topologySpreadConstraints": {
+      "default": [],
+      "description": "List of Kubernetes TopologySpreadConstraints. For more information, see:\n[Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/).\n\nFor example:\ntopologySpreadConstraints:\n- maxSkew: 2\n  topologyKey: topology.kubernetes.io/zone\n  whenUnsatisfiable: ScheduleAnyway\n  labelSelector:\n    matchLabels:\n      app.kubernetes.io/name: cert-manager-approver-policy\n      app.kubernetes.io/instance: cert-manager-approver-policy",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.volumeMounts": {
+      "default": [],
+      "description": "Optional extra volume mounts. Useful for mounting custom root CAs.\n\nFor example:\nvolumeMounts:\n- name: my-volume-mount\n  mountPath: /etc/approver-policy/secrets",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.volumes": {
+      "default": [],
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.webhook": {
+      "additionalProperties": false,
+      "properties": {
+        "port": {
+          "$ref": "#/$defs/helm-values.webhook.port"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.webhook.port": {
+      "default": 10250,
+      "description": "The port that the webhook listens on.",
+      "type": "number"
+    }
+  },
+  "$ref": "#/$defs/helm-values",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

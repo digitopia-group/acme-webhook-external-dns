@@ -1,0 +1,53 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "acme-webhook-external-dns.name" . }}-self-signed
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "acme-webhook-external-dns.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "acme-webhook-external-dns.name" . }}-ca
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "acme-webhook-external-dns.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "acme-webhook-external-dns.name" . }}-ca
+  duration: 43800h # 5y
+  issuerRef:
+    name: {{ include "acme-webhook-external-dns.name" . }}-self-signed
+  commonName: "ca.example-webhook.cert-manager"
+  isCA: true
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "acme-webhook-external-dns.name" . }}-ca
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "acme-webhook-external-dns.labels" . | nindent 4 }}
+spec:
+  ca:
+    secretName: {{ include "acme-webhook-external-dns.name" . }}-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "acme-webhook-external-dns.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "acme-webhook-external-dns.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "acme-webhook-external-dns.name" . }}
+  duration: 8760h # 1y
+  renewBefore: 730h # 1m
+  issuerRef:
+    name: {{ include "acme-webhook-external-dns.name" . }}-ca
+  dnsNames:
+  - {{ include "acme-webhook-external-dns.name" . }}
+  - {{ include "acme-webhook-external-dns.name" . }}.{{ .Release.Namespace }}
+  - {{ include "acme-webhook-external-dns.name" . }}.{{ .Release.Namespace }}.svc

@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "acme-webhook-external-dns.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "acme-webhook-external-dns.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "acme-webhook-external-dns.name" . }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "acme-webhook-external-dns.name" . }}
+        {{- include "acme-webhook-external-dns.labels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "acme-webhook-external-dns.name" . }}
+      containers:
+      - name: {{ include "acme-webhook-external-dns.name" . }}
+        image: "{{ template "image" (tuple .Values.image $.Chart.AppVersion) }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: https
+          containerPort: {{ .Values.webhook.port }}
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /livez
+            port: https
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /readyz
+            port: https
+        args:
+          - --tls-cert-file=/tls/tls.crt
+          - --tls-private-key-file=/tls/tls.key
+          - --secure-port={{ .Values.webhook.port }}
+          {{- range .Values.extraArgs }}
+          - {{ . }}
+          {{- end  }}
+        volumeMounts:
+          - name: certs
+            mountPath: /tls
+            readOnly: true
+          {{- with .Values.volumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+          readOnlyRootFilesystem: true
+        {{- if or .Values.http_proxy .Values.https_proxy .Values.no_proxy }}
+        env:
+        {{- with .Values.http_proxy }}
+        - name: HTTP_PROXY
+          value: {{ . }}
+        {{- end }}
+        {{- with .Values.https_proxy }}
+        - name: HTTPS_PROXY
+          value: {{ . }}
+        {{- end }}
+        {{- with .Values.no_proxy }}
+        - name: NO_PROXY
+          value: {{ . }}
+        {{- end }}
+        {{- end }}
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "acme-webhook-external-dns.name" . }}
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      hostNetwork: {{ .Values.hostNetwork }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with  .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
