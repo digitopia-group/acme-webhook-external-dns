@@ -16,7 +16,7 @@ jobs:
         with:
           username: ${{ secrets.VULTR_CR_USERNAME }}
           password: ${{ secrets.VULTR_CR_PASSWORD }}
-          registry: https://ams.vultrcr.com/experiences
-          repository: acme-webhook-external-dns/acme-webhook-external-dns
+          registry: ams.vultrcr.com/experiences
+          repository: acme-webhook-external-dns
           tags: latest
 
