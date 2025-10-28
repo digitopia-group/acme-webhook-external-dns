@@ -1,0 +1,22 @@
+name: Build and upload
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and push
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jerray/publish-docker-action@master
+        with:
+          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+          registry: houseofdigital.azurecr.io
+          repository: acme-webhook-external-dns/acme-webhook-external-dns
+          tags: latest
+
