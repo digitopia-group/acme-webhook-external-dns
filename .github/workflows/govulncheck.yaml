@@ -8,7 +8,7 @@ name: govulncheck
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 29 10 *'
 
 jobs:
   govulncheck:
